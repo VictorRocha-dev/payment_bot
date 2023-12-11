@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Atualizar Status do Pedido</title>
+</head>
+<body>
+  <h1>Atualizar Status do Pedido</h1>
+  <ul id="pedidos">
+    <!-- Lista de pedidos será exibida aqui -->
+  </ul>
+
+  <script>
+    function buscarPedidos() {
+      fetch('http://localhost:3000/pedidos-pendentes')
+        .then(response => response.json())
+        .then(data => {
+          const pedidosList = document.getElementById('pedidos');
+          pedidosList.innerHTML = ''; // Limpa a lista antes de adicionar os novos pedidos
+          data.forEach(pedido => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `ID: ${pedido.id} - Status: ${pedido.status}`;
+
+            const btnAprovar = document.createElement('button');
+            btnAprovar.textContent = 'Aprovar';
+            btnAprovar.onclick = () => atualizarStatusPedido(pedido.id, 'aprovado');
+
+            const btnRejeitar = document.createElement('button');
+            btnRejeitar.textContent = 'Rejeitar';
+            btnRejeitar.onclick = () => atualizarStatusPedido(pedido.id, 'rejeitado');
+
+            listItem.appendChild(btnAprovar);
+            listItem.appendChild(btnRejeitar);
+
+            pedidosList.appendChild(listItem);
+          });
+        })
+        .catch(error => console.error('Erro ao buscar pedidos pendentes:', error));
+    }
+
+    async function atualizarStatusPedido(pedidoId, novoStatus) {
+      try {
+        const response = await fetch(`http://localhost:3000/atualizar-status/${pedidoId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: novoStatus }),
+        });
+
+        if (response.ok) {
+          console.log(`Status do pedido ${pedidoId} atualizado para "${novoStatus}"`);
+          buscarPedidos(); // Atualiza a lista de pedidos após a atualização do status
+        } else {
+          console.error('Erro ao atualizar status do pedido');
+        }
+      } catch (error) {
+        console.error('Erro ao atualizar status do pedido:', error);
+      }
+    }
+
+    window.onload = buscarPedidos;
+  </script>
+</body>
+</html>
